@@ -11,6 +11,8 @@ export class UserModel extends Model {
   declare password: string;
   declare role: "user" | "admin";
   declare img?: string;
+  declare resetPasswordToken?: string | null; // ✅ Nuevo campo
+  declare resetPasswordExpires?: Date | null; // ✅ Nuevo campo
 }
 
 UserModel.init(
@@ -50,6 +52,14 @@ UserModel.init(
     },
     img: {
       type: DataTypes.STRING(500),
+      allowNull: true,
+    },
+    resetPasswordToken: {
+      type: DataTypes.STRING(255), // ✅ Nuevo campo
+      allowNull: true,
+    },
+    resetPasswordExpires: {
+      type: DataTypes.DATE, // ✅ Nuevo campo
       allowNull: true,
     },
   },

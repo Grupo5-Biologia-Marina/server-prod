@@ -21,3 +21,17 @@ export const loginValidation = [
   body("password")
     .notEmpty().withMessage("La contraseña es obligatoria")
 ];
+
+// Validación para recuperación de contraseña
+export const forgotPasswordValidation = [
+  body('email')
+    .isEmail()
+    .withMessage('Por favor proporciona un email válido')
+];
+
+// Validación para restablecer contraseña
+export const resetPasswordValidation = [
+  body('password')
+    .isLength({ min: 6 })
+    .withMessage('La contraseña debe tener al menos 6 caracteres')
+];
