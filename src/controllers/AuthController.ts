@@ -36,7 +36,10 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
       return;
     }
 
-    const existingUser = await UserModel.findOne({ where: { email } });
+    // Normalizar email para búsqueda
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const existingUser = await UserModel.findOne({ where: { email: normalizedEmail } });
     if (existingUser) {
       res.status(409).json({ 
         success: false, 
@@ -60,15 +63,16 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
       username,
       firstname,
       lastname,
-      email,
+      email: normalizedEmail, // Guardar email normalizado
       password: hashedPassword,
       role: "user",
     });
 
     console.log(`✅ Usuario creado: ${user.username} (${user.email})`);
 
-    sendWelcomeEmail(email, username)
-      .then(() => console.log(`📧 Email de bienvenida enviado a ${email}`))
+    // Enviar email de bienvenida (no bloqueante)
+    sendWelcomeEmail(normalizedEmail, username)
+      .then(() => console.log(`📧 Email de bienvenida enviado a ${normalizedEmail}`))
       .catch((error) => console.error(`⚠️ Error enviando email (no crítico):`, error.message));
 
     const token = jwt.sign(
@@ -115,7 +119,10 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const user = await UserModel.findOne({ where: { email } });
+    // Normalizar email para búsqueda
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const user = await UserModel.findOne({ where: { email: normalizedEmail } });
 
     if (!user) {
       res.status(401).json({ 
@@ -179,16 +186,49 @@ export const forgotPassword = async (req: Request, res: Response): Promise<void>
       return;
     }
 
+    // ✅ NORMALIZAR EL EMAIL
+    const cleanEmail = email.trim().toLowerCase();
+    console.log("📧 Email recibido:", `"${email}"`);
+    console.log("📧 Email normalizado:", `"${cleanEmail}"`);
+
     // 1. Verificar si el usuario existe
-    const user = await UserModel.findOne({ where: { email } });
+    console.log("🔍 Buscando usuario en la base de datos...");
+    const user = await UserModel.findOne({ where: { email: cleanEmail } });
     
+    // ✅ LOG DETALLADO
+    if (user) {
+      console.log("✅ USUARIO ENCONTRADO:", {
+        id: user.id,
+        email: user.email,
+        username: user.username
+      });
+    } else {
+      console.log("❌ USUARIO NO ENCONTRADO para email:", cleanEmail);
+      
+      // ✅ DEBUG: Verificar todos los emails en la BD
+      try {
+        const allUsers = await UserModel.findAll({
+          attributes: ['id', 'email', 'username'],
+          limit: 10
+        });
+        console.log("📋 Usuarios en BD:", allUsers.map(u => ({
+          id: u.id,
+          email: `"${u.email}"`,
+          username: u.username
+        })));
+      } catch (dbError) {
+        console.error("❌ Error obteniendo usuarios:", dbError);
+      }
+    }
+
     // Por seguridad, siempre devolvemos el mismo mensaje
     const responseMessage = "Si el email existe, recibirás un enlace para restablecer tu contraseña";
 
     if (!user) {
-      console.log(`❌ Email no encontrado: ${email}`);
+      console.log(`❌ Email no encontrado después de búsqueda: ${cleanEmail}`);
+      // ✅ CAMBIAR A success: false para que el frontend sepa que hay problema
       res.json({ 
-        success: true,
+        success: false,  // ⚠️ CAMBIO IMPORTANTE
         message: responseMessage 
       });
       return;
@@ -197,6 +237,8 @@ export const forgotPassword = async (req: Request, res: Response): Promise<void>
     // 2. Generar token único
     const resetToken = crypto.randomBytes(32).toString('hex');
     const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hora
+
+    console.log("🔄 Actualizando usuario con token de reset...");
 
     // 3. Guardar token en la base de datos
     await UserModel.update(
@@ -209,22 +251,27 @@ export const forgotPassword = async (req: Request, res: Response): Promise<void>
       }
     );
 
-    console.log(`✅ Token de recuperación generado para: ${email}`);
+    console.log(`✅ Token de recuperación generado para: ${user.email}`);
+    console.log(`🕐 Token expira: ${resetTokenExpiry}`);
 
     // 4. Enviar email con enlace
     const resetUrl = `${process.env.FRONTEND_URL || 'https://el-gran-azul-c2d7.vercel.app'}/reset-password/${resetToken}`;
+    console.log("🔗 URL de reset generada:", resetUrl);
     
     try {
-      await sendPasswordResetEmail(email, resetUrl);
-      console.log(`📧 Email de recuperación enviado a: ${email}`);
+      console.log("📨 Intentando enviar email...");
+      await sendPasswordResetEmail(user.email, resetUrl);
+      console.log(`✅ Email de recuperación enviado a: ${user.email}`);
     } catch (emailError) {
-      console.error(`⚠️ Error enviando email de recuperación:`, emailError);
+      console.error(`❌ Error enviando email de recuperación:`, emailError);
+      // No re-lanzamos el error para no revelar información
     }
 
     res.json({ 
       success: true,
       message: responseMessage
     });
+
   } catch (error: any) {
     console.error("❌ Error en forgotPassword:", error);
     res.status(500).json({
