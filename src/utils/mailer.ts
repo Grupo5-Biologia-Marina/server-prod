@@ -104,7 +104,7 @@ export const sendWelcomeEmail = async (to: string, username: string) => {
                   <table role="presentation" style="border-collapse: collapse;">
                     <tr>
                       <td align="center" style="border-radius: 8px; background: linear-gradient(135deg, #00f2ff 0%, #00b8d4 100%); box-shadow: 0 6px 25px rgba(0, 242, 255, 0.4);">
-                        <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/login" 
+                        <a href="https://el-gran-azul-c2d7.vercel.app/login" 
                            style="display: inline-block; padding: 18px 45px; color: #001f2f; font-size: 16px; font-weight: 700; text-decoration: none; letter-spacing: 0.5px; text-transform: uppercase;">
                           🐠 Explorar ahora
                         </a>
@@ -152,7 +152,7 @@ Hola ${username},
 
 Gracias por unirte a nuestra plataforma de exploración marina. Ahora puedes acceder a los últimos descubrimientos y conectar con nuestra comunidad de entusiastas de la biología marina.
 
-Accede a tu cuenta aquí: ${process.env.FRONTEND_URL || 'http://localhost:3000'}/login
+Accede a tu cuenta aquí: https://el-gran-azul-c2d7.vercel.app/login
 
 ¿Necesitas ayuda? Contáctanos en: ${process.env.EMAIL_USER}
 
