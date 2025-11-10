@@ -1,8 +1,9 @@
-# 🌊 Proyecto Backend - El Gran Azul
+# 🌊 Proyecto Backend - Biología Marina
 
-Este proyecto es la **API** del sistema de **El Gran Azul**, dedicada a los descubrimientos de la biología marina.  
-Está desarrollada con **Node.js**, **Express**, **TypeScript** y **Sequelize** como ORM, conectada a una base de datos **MySQL**.  
-Permite almacenar, gestionar y consultar información sobre nuevas especies, investigaciones y hallazgos en el océano, ofreciendo datos estructurados que luego pueden ser consumidos por un frontend para mostrar publicaciones, perfiles de investigadores y noticias marinas.  
+Este proyecto es la **API** del sistema de **Biología Marina**, gestionando publicaciones, usuarios y descubrimientos del océano.  
+Está desarrollado con **Node.js**, **TypeScript**, **Express** y **Sequelize** para conectarse a **TiDB Cloud** (antes Railway).  
+Es una adaptación del repositorio original *https://github.com/Grupo5-Biologia-Marina/server*.  
+Permite almacenar posts, categorías, imágenes y likes, con autenticación segura mediante JWT y envío de notificaciones por correo electrónico.  
 
 ---
 
@@ -10,63 +11,45 @@ Permite almacenar, gestionar y consultar información sobre nuevas especies, inv
 
 - **Lenguaje:** TypeScript  
 - **Framework:** Express  
-- **Base de datos:** MySQL (Sequelize ORM)  
+- **Base de datos:** TiDB Cloud (MySQL compatible, con SSL)  
+- **ORM:** Sequelize  
 - **Autenticación y seguridad:** Bcrypt, JWT, Validator  
 - **Subida de archivos y almacenamiento:** Multer, Cloudinary  
 - **Correo electrónico:** Nodemailer  
-- **Testing:** Jest, Supertest  
-- **Desarrollo y utilidades:** ts-node, ts-node-dev, ESLint, Sequelize-CLI, Dotenv, UUID  
-- **Despliegue:** Railway
+- **Desarrollo y utilidades:** ts-node, ts-node-dev, ESLint, UUID, Dotenv   
 
 ---
 
-## ⭐️ Funcionalidades 
+## ⭐ Funcionalidades
 
 ### 🧱 Base de datos relacional
-Diseño relacional con Sequelize (MySQL), migraciones y seeders configurados para inicializar usuarios, categorías y publicaciones.
+- Conexión a TiDB Cloud mediante Sequelize, con SSL y configuración segura.  
+- Tablas: `Users`, `Posts`, `Categories`, `Post_Images`, `Likes`, `Post_Categories`.  
+- Migraciones y seeders preparados para inicializar el sistema.  
 
-### 🧩 Validación de datos
-Verificación y saneamiento de la información mediante validadores personalizados en `validators/`.
-Garantiza consistencia en formularios de autenticación y creación de posts.
-
-### 🔐 Autenticación y roles de usuario
-Gestión segura de registro, inicio y cierre de sesión mediante JWT.
-Los usuarios cuentan con diferentes permisos según su rol, controlados por middlewares de autorización.
-- Login con usuario y contraseña → devuelve un **JWT**.  
-- Rutas protegidas requieren `Authorization: Bearer <token>`.  
-- Roles disponibles:  
-  - `user`: permisos básicos.  
-  - `admin`: puede crear/editar/eliminar posts y categorías.  
+### 🔐 Autenticación y roles
+- Registro, login y logout con JWT.  
+- Roles: `user` (básico) y `admin` (gestión total de posts y categorías).  
+- Middlewares de autorización para proteger rutas.  
 
 ### 🗂️ Gestión de categorías
-Administración de categorías temáticas (por ejemplo vida marina, ecosistemas oceánicos, ciencia y exploración, etc.) para clasificar las publicaciones.
-Relación N:M entre posts y categorías mediante una tabla intermedia.
+- Clasificación de posts por categorías temáticas.  
+- Relación N:M entre posts y categorías (`Post_Categories`).  
 
-### ❤️ Sistema de likes
-Implementa una tabla intermedia (Likes) que permite a los usuarios marcar o quitar “me gusta” en publicaciones.
-La lógica está gestionada desde `LikeController.ts` con rutas protegidas.
+### ❤️ Likes
+- Usuarios pueden dar o quitar “me gusta” en publicaciones.  
+- Tabla intermedia `Likes` gestionada desde `LikeController`.  
 
-### 🧪 Testing automatizado
-Cobertura de pruebas unitarias y de integración mediante Jest y Supertest, validando rutas de autenticación, CRUD y seguridad.
+### 🖼️ Imágenes
+- Integración con Cloudinary para subir imágenes.  
+- Metadatos opcionales: créditos, descripción.  
 
-<img src="src/assets/test-1.png" alt="Backend tests" width="400"/>
+### 📧 Notificaciones
+- Correo de bienvenida automático al registrarse.  
+- Configurable mediante variables de entorno.  
 
-<img src="src/assets/test-2.png" alt="Backend tests" width="400"/>
-
-### 🖼️ Subida y gestión de imágenes
-Integración con Cloudinary para almacenar imágenes asociadas a publicaciones.
-El sistema maneja metadatos opcionales como créditos y descripciones de imagen de manera opcional.
-
-<img src="src/assets/cloudinary.png" alt="Cloudinary desktop" width="400"/>
-
-### 📧 Notificaciones por correo electrónico
-Envío automático de un email de bienvenida al registrarse, utilizando Nodemailer y credenciales configuradas en el entorno.
-
-<img src="src/assets/nodemailer.png" alt="Email bienvenida" width="300"/>
-
-### 🔄 Copia de seguridad
-Ruta `/backup` que genera un archivo JSON con los datos actuales almacenados en la base de datos de Railway.
-Facilita la exportación y recuperación de información.
+### 🔄 Backup
+- Ruta `/backup` para generar un JSON de toda la base de datos.  
 
 ---
 
@@ -75,7 +58,7 @@ Facilita la exportación y recuperación de información.
 ```
 server/
 ├── src/
-│ ├── assets/                               # Logo
+├ ├──server.ts                               # Punto de entrada del servidor
 │ ├── controllers/                          # Controladores de la lógica de negocio
 │ │   ├── AuthController.ts  
 │ │   ├── CategoryController.ts  
@@ -117,14 +100,6 @@ server/
 │ │   ├── 004-admin-posts-categories.js
 │ │   ├── 005-admin-posts-img.js
 │ │   └── 006-admin-likes.js
-│ ├── tests/                                # Tests unitarios/integración
-│ │   ├── auth.test.ts
-│ │   ├── crud.test.ts
-│ │   ├── images.test.ts
-│ │   ├── likes.test.ts
-│ │   ├── login.test.ts
-│ │   ├── setup.ts
-│ │   └── token.test.ts 
 │ ├── types/                                # Definiciones TS (DTOs, interfaces, etc.)
 │ │   ├── auth.ts
 │ │   ├── category.ts
@@ -140,14 +115,11 @@ server/
 ├── .env.example                            # Modelo de .env
 ├── .gitignore                              # Archivos que no se suben a GitHub
 ├── .sequelizerc                            # Configuración Sequelize
-├── backup_railway.json                     # Copia de seguridad
 ├── docker-compose.yml                      # Configuración Docker
-├── jest.config.js                          # Configuración Jest
 ├── backup_local.sql                        # Dump copia de seguridad de la base de datos
 ├── package-lock.json                       # Dependencias
 ├── package.json                            # Dependencias
 ├── README.md                               # Documentación
-├── server.ts                               # Punto de entrada del servidor
 └── tsconfig.json                           # Configuración TypeScript
 
 ```
@@ -305,8 +277,8 @@ Consulta toda la documentación de la API haciendo clic en el logo:
 
 ### Clonar el repo
 ```
-git clone https://github.com/Grupo5-Biologia-Marina/server.git
-cd server
+git clone https://github.com/Grupo5-Biologia-Marina/server-prod.git
+cd server-prod
 ```
 
 ### Instalar dependencias
@@ -316,122 +288,55 @@ npm install
 
 ### Configuración según entorno:
 
-#### Local (MySQL Workbench)
-1. Crear la base de datos y el usuario:
+#### Local (TiDB Cloud)
+
+1. Crear la base de datos y el usuario desde TiDB Cloud Console o Workbench:
     ```
-    CREATE DATABASE lastdiscover_local;
-    CREATE USER 'appuser'@'%' IDENTIFIED BY 'password';
-    GRANT ALL PRIVILEGES ON lastdiscover_local.* TO 'appuser'@'%';
-    FLUSH PRIVILEGES;
-    ```
-2. Crear el .env:
-    ```
-    DB_NAME=lastdiscover_local
-    DB_PORT=3306
-    USER_DB=appuser
-    PASSWORD_DB=password
-    HOST=127.0.0.1
-    DB_DIALECT=mysql
-    ```
-3. Ejecutar las migraciones y seeds:
-    ```
-   npx sequelize-cli db:migrate
-   npx sequelize-cli db:seed:all
-    ```
-4. *Deshacer migraciones y seeds (en caso necesario, opcional):*
-    ```
-   npx sequelize-cli db:migrate:undo:all
-   npx sequelize-cli db:seed:undo:all
-    ```
-5. Iniciar servidor:
-    ```
-   npx ts-node server.ts
+    CREATE DATABASE server_prod_biologia_marina;
     ```
 
-#### Local (con Docker)
-1. Levantar Docker:
+2. Sustituir el archivo `.env` compartido en Discord:
     ```
-    docker-compose up -d
-    ```
-2. Crear el .env:
-    ```
-    DB_NAME=lastdiscover
-    DB_PORT=3307
+    DB_NAME=server_prod_biologia_marina
     DB_USER=appuser
     DB_PASSWORD=password
-    DB_HOST=127.0.0.1
-    JWT_SECRET=supersecret
-    ```
-3. Verificar contenedores:
-    ```
-   docker ps
-    ```
-4. Ejecutar las migraciones y seeds:
-    ```
-   npx sequelize-cli db:migrate
-   npx sequelize-cli db:seed:all
-    ```
-5. *Deshacer migraciones y seeds (en caso necesario, opcional):*
-    ```
-   npx sequelize-cli db:migrate:undo:all
-   npx sequelize-cli db:seed:undo:all
-    ```
-6. Inspeccionar la base de datos:
-    ```
-   docker exec -it lastdiscover mysql -uappuser -ppassword lastdiscover
-    show databases;
-    use lastdiscover;
-    show tables;
-    describe users;
-    exit;
-    ```
-
-#### Railway desde 0 
-1. Crear un proyecto en Railway tipo MySQL.
-2. Obtener las credenciales de la base de datos del panel de Railway para introducirlas en el .env:
-    ```
-    DB_NAME=
-    USER_DB=
-    PASSWORD_DB=
-    HOST=
-    DB_PORT=
+    DB_HOST=<host-tiDB>
+    DB_PORT=4000
     DB_DIALECT=mysql
-    MYSQL_PUBLIC_URL=
+    JWT_SECRET=<tu_jwt_secret>
+    
+    CLOUDINARY_CLOUD_NAME=<cloud_name>
+    CLOUDINARY_API_KEY=<api_key>
+    CLOUDINARY_API_SECRET=<api_secret>
+
+    EMAIL_USER=<email>
+    EMAIL_APP_PASS=<email_app_pass>
+    FRONTEND_URL=http://localhost:5173
+    APP_PORT=4000
     ```
-3. Importar la base de datos desde el dump 'backup_local.sql':
+
+5. Iniciar el servidor:
     ```
-   mysql -h <host> -P <puerto> -u <usuario> -p <nombre_de_la_db> < backup_local.sql
+    npx tsc
+    node dist/server.js
     ```
-4. Iniciar el servidor localmente apuntando a la base de datos de Railway:
+---
+
+#### Producción (TiDB Cloud)
+
+1. Se ha creado el proyecto en TiDB Cloud y hemos obtenido las credenciales.
+
+2. Rellenar `.env` con las credenciales del proyecto.
+
+3. Importar la base de datos desde el dump `backup_local.sql`:
+    ```bash
+    mysql -h <host> -P <puerto> -u <usuario> -p <nombre_de_la_db> < backup_local.sql
     ```
-   npx railway run npx ts-node server.ts
+
+4. Iniciar servidor apuntando a la base de datos de TiDB:
     ```
-
-Ejemplo de cómo se ve la base de datos en Railway:
-
-<img src="src/assets/railway-1.png" alt="Tablas de la base de datos en Railway" width="600"/>
-
-<img src="src/assets/railway-2.png" alt="TTabla posts de la base de datos en Railway" width="600"/>
-
-
-### Configuración común tanto en local como conectando con Railway. Cloudinary y Nodemailer:
-
-Añadir lo siguiente en el .env:
-
-```
-APP_PORT=4000
-
-CLOUDINARY_CLOUD_NAME=dkm0ahny1
-CLOUDINARY_API_KEY=243859817582917
-CLOUDINARY_API_SECRET=0kPQdQlToQzFeEZxv8MDlBH9XPE
-
-JWT_SECRET=1234
-
-EMAIL_USER=el.gran.azul.post@gmail.com
-EMAIL_APP_PASS=xvlotowcpiojllfa
-FRONTEND_URL=http://localhost:5173
-```
-
+    npx ts-node server.ts
+    ```
 ---
 ## 👩🏻‍💻​ Creadoras
 
@@ -443,4 +348,4 @@ FRONTEND_URL=http://localhost:5173
 ## 📌 Notas
 
 - Por defecto, el primer usuario creado debería ser admin (configurable).
-- Railway ofrece servicio gratuito 30 días por lo que no es una solución definitiva.
+- Railway ofrece servicio gratuito 30 días por lo que hemos gestionado el traspaso a TiDB. 
