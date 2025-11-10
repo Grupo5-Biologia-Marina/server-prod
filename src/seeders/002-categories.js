@@ -5,7 +5,7 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.bulkInsert('categories', [
       {
-        name: '🐠 Vida Marina',
+        name: '🦈 Vida Marina',
         description: 'Descubre las criaturas fascinantes que habitan los océanos, desde corales y medusas hasta tiburones y ballenas.',
         img: 'https://res.cloudinary.com/dkm0ahny1/image/upload/v1760082986/marine-life_plsxer.png',
       },
