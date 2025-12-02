@@ -1,12 +1,13 @@
 import { Router } from "express";
 import { 
   registerUser, 
-  loginUser
+  loginUser,
+  forgotPassword,
+  resetPassword,
+  getCurrentUser  // ← Asegúrate de agregar esta import
 } from "../controllers/AuthController";
-// Importa las funciones específicamente
-import { forgotPassword } from "../controllers/AuthController";
-import { resetPassword } from "../controllers/AuthController";
 import { validationMiddleware } from "../middlewares/validationMiddleware";
+import { authenticate } from "../middlewares/authMiddleware"; // ← Cambia de authMiddleware a authenticate
 import { 
   registerValidation, 
   loginValidation, 
@@ -16,13 +17,16 @@ import {
 
 const router = Router();
 
-// Rutas de autenticación
+// ✅ Rutas públicas
 router.post("/register", registerValidation, validationMiddleware, registerUser);
 router.post("/login", loginValidation, validationMiddleware, loginUser);
 router.post("/forgot-password", forgotPasswordValidation, validationMiddleware, forgotPassword);
 router.post("/reset-password/:token", resetPasswordValidation, validationMiddleware, resetPassword);
 
-// Ruta de logout
+// ✅ Ruta protegida - Obtener usuario actual (usa authenticate)
+router.get("/me", authenticate, getCurrentUser); // ← ¡USA authenticate!
+
+// ✅ Ruta de logout
 router.post("/logout", (req, res) => {
   res.clearCookie("token"); 
   res.status(200).json({ 

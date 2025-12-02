@@ -20,18 +20,18 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
     const { username, firstname, lastname, email, password } = req.body;
 
     if (!username || !email || !password) {
-      res.status(400).json({ 
-        success: false, 
-        message: "Faltan datos obligatorios: username, email y password son requeridos" 
+      res.status(400).json({
+        success: false,
+        message: "Faltan datos obligatorios: username, email y password son requeridos"
       });
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      res.status(400).json({ 
-        success: false, 
-        message: "Formato de email inválido" 
+      res.status(400).json({
+        success: false,
+        message: "Formato de email inválido"
       });
       return;
     }
@@ -41,18 +41,18 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
 
     const existingUser = await UserModel.findOne({ where: { email: normalizedEmail } });
     if (existingUser) {
-      res.status(409).json({ 
-        success: false, 
-        message: "Este email ya está registrado" 
+      res.status(409).json({
+        success: false,
+        message: "Este email ya está registrado"
       });
       return;
     }
 
     const existingUsername = await UserModel.findOne({ where: { username } });
     if (existingUsername) {
-      res.status(409).json({ 
-        success: false, 
-        message: "Este nombre de usuario ya está en uso" 
+      res.status(409).json({
+        success: false,
+        message: "Este nombre de usuario ya está en uso"
       });
       return;
     }
@@ -112,9 +112,9 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      res.status(400).json({ 
-        success: false, 
-        message: "Email y password son obligatorios" 
+      res.status(400).json({
+        success: false,
+        message: "Email y password son obligatorios"
       });
       return;
     }
@@ -125,9 +125,9 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     const user = await UserModel.findOne({ where: { email: normalizedEmail } });
 
     if (!user) {
-      res.status(401).json({ 
-        success: false, 
-        message: "Credenciales inválidas" 
+      res.status(401).json({
+        success: false,
+        message: "Credenciales inválidas"
       });
       return;
     }
@@ -135,9 +135,9 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
-      res.status(401).json({ 
-        success: false, 
-        message: "Credenciales inválidas" 
+      res.status(401).json({
+        success: false,
+        message: "Credenciales inválidas"
       });
       return;
     }
@@ -179,9 +179,9 @@ export const forgotPassword = async (req: Request, res: Response): Promise<void>
     const { email } = req.body;
 
     if (!email) {
-      res.status(400).json({ 
-        success: false, 
-        message: "El email es obligatorio" 
+      res.status(400).json({
+        success: false,
+        message: "El email es obligatorio"
       });
       return;
     }
@@ -194,7 +194,7 @@ export const forgotPassword = async (req: Request, res: Response): Promise<void>
     // 1. Verificar si el usuario existe
     console.log("🔍 Buscando usuario en la base de datos...");
     const user = await UserModel.findOne({ where: { email: cleanEmail } });
-    
+
     // ✅ LOG DETALLADO
     if (user) {
       console.log("✅ USUARIO ENCONTRADO:", {
@@ -204,7 +204,7 @@ export const forgotPassword = async (req: Request, res: Response): Promise<void>
       });
     } else {
       console.log("❌ USUARIO NO ENCONTRADO para email:", cleanEmail);
-      
+
       // ✅ DEBUG: Verificar todos los emails en la BD
       try {
         const allUsers = await UserModel.findAll({
@@ -227,9 +227,9 @@ export const forgotPassword = async (req: Request, res: Response): Promise<void>
     if (!user) {
       console.log(`❌ Email no encontrado después de búsqueda: ${cleanEmail}`);
       // ✅ CAMBIAR A success: false para que el frontend sepa que hay problema
-      res.json({ 
+      res.json({
         success: false,  // ⚠️ CAMBIO IMPORTANTE
-        message: responseMessage 
+        message: responseMessage
       });
       return;
     }
@@ -257,7 +257,7 @@ export const forgotPassword = async (req: Request, res: Response): Promise<void>
     // 4. Enviar email con enlace
     const resetUrl = `${process.env.FRONTEND_URL || 'https://el-gran-azul-c2d7.vercel.app'}/reset-password/${resetToken}`;
     console.log("🔗 URL de reset generada:", resetUrl);
-    
+
     try {
       console.log("📨 Intentando enviar email...");
       await sendPasswordResetEmail(user.email, resetUrl);
@@ -267,7 +267,7 @@ export const forgotPassword = async (req: Request, res: Response): Promise<void>
       // No re-lanzamos el error para no revelar información
     }
 
-    res.json({ 
+    res.json({
       success: true,
       message: responseMessage
     });
@@ -291,9 +291,9 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
     const { password } = req.body;
 
     if (!password) {
-      res.status(400).json({ 
-        success: false, 
-        message: "La nueva contraseña es obligatoria" 
+      res.status(400).json({
+        success: false,
+        message: "La nueva contraseña es obligatoria"
       });
       return;
     }
@@ -307,9 +307,9 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
     });
 
     if (!user) {
-      res.status(400).json({ 
-        success: false, 
-        message: "El enlace de restablecimiento es inválido o ha expirado" 
+      res.status(400).json({
+        success: false,
+        message: "El enlace de restablecimiento es inválido o ha expirado"
       });
       return;
     }
@@ -317,16 +317,16 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
     // 2. Verificar que la nueva contraseña sea diferente a la anterior
     const isSamePassword = await bcrypt.compare(password, user.password);
     if (isSamePassword) {
-      res.status(400).json({ 
-        success: false, 
-        message: "La nueva contraseña no puede ser igual a la anterior" 
+      res.status(400).json({
+        success: false,
+        message: "La nueva contraseña no puede ser igual a la anterior"
       });
       return;
     }
 
     // 3. Hashear nueva contraseña
     const hashedPassword = hashPassword(password);
-    
+
     // 4. Actualizar contraseña y limpiar token
     await UserModel.update(
       {
@@ -349,9 +349,9 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
       console.error(`⚠️ Error enviando email de confirmación:`, emailError);
     }
 
-    res.json({ 
-      success: true, 
-      message: "Contraseña actualizada exitosamente" 
+    res.json({
+      success: true,
+      message: "Contraseña actualizada exitosamente"
     });
   } catch (error: any) {
     console.error("❌ Error en resetPassword:", error);
@@ -360,5 +360,65 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
       message: "Error en el servidor durante el restablecimiento de contraseña",
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
+    // GET CURRENT USER INFO
+    const getCurrentUser = async (req: Request, res: Response): Promise<void> => {
+      try {
+        console.log("👤 Solicitud de información de usuario actual");
+
+        // El middleware authMiddleware debe adjuntar el user al request
+        // Si no hay user en req, el token es inválido o no hay middleware
+        const userFromToken = (req as any).user;
+
+        if (!userFromToken || !userFromToken.id) {
+          console.log("❌ No hay usuario en el request - Token inválido o middleware faltante");
+          res.status(401).json({
+            success: false,
+            message: "Usuario no autenticado"
+          });
+          return;
+        }
+
+        console.log("🔍 Buscando usuario en BD con ID:", userFromToken.id);
+
+        // Buscar usuario en la base de datos para info completa
+        const dbUser = await UserModel.findByPk(userFromToken.id, {
+          attributes: ['id', 'username', 'email', 'firstname', 'lastname', 'role', 'img', 'createdAt']
+        });
+
+        if (!dbUser) {
+          console.log("❌ Usuario no encontrado en BD para ID:", userFromToken.id);
+          res.status(404).json({
+            success: false,
+            message: "Usuario no encontrado"
+          });
+          return;
+        }
+
+        console.log("✅ Usuario encontrado:", dbUser.username);
+
+        res.json({
+          success: true,
+          data: {
+            id: dbUser.id,
+            username: dbUser.username,
+            email: dbUser.email,
+            firstname: dbUser.firstname,
+            lastname: dbUser.lastname,
+            role: dbUser.role,
+            img: dbUser.img,
+            createdAt: dbUser.createdAt
+          }
+        });
+
+      } catch (error: any) {
+        console.error("❌ Error en getCurrentUser:", error);
+        res.status(500).json({
+          success: false,
+          message: "Error al obtener información del usuario",
+          error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+        });
+      }
+    };
+
   }
 };
