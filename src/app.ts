@@ -12,55 +12,65 @@ dotenv.config();
 
 const app = express();
 
-// ✅ Configuración segura y dinámica de CORS - ACTUALIZADA
+// ✅ LISTA DE DOMINIOS PERMITIDOS - AGREGA TU IP
 const allowedOrigins = [
-  "https://el-gran-azul-c2d7.vercel.app", // producción Vercel
-  "http://localhost:5173", // desarrollo local Vite
-  "http://localhost:3000", // desarrollo tradicional
+  "https://el-gran-azul-c2d7.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "http://192.168.1.68:5173" // ← ¡TU IP LOCAL AQUÍ!
 ];
 
-// Si hay FRONTEND_URL en las variables, la agregamos
-if (process.env.FRONTEND_URL) {
-  const envOrigins = process.env.FRONTEND_URL.split(",");
-  allowedOrigins.push(...envOrigins);
-}
+console.log("✅ Dominios permitidos:", allowedOrigins);
 
-console.log("🌐 Dominios permitidos por CORS:", allowedOrigins);
+// ✅ CONFIGURACIÓN PRINCIPAL DE CORS
+app.use(cors({
+  origin: function (origin, callback) {
+    // Permite requests sin origin
+    if (!origin) return callback(null, true);
+    
+    // Verifica si el origen está permitido
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.log("❌ Origen bloqueado:", origin);
+      callback(new Error("Origen no permitido"), false);
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
+}));
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      // Permitir requests sin origin (como mobile apps o curl)
-      if (!origin) {
-        callback(null, true);
-        return;
-      }
-      
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        console.warn("❌ CORS bloqueado para origen:", origin);
-        callback(null, false); // Cambiado a null para evitar throw
-      }
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-  })
-);
+// ✅ HEADERS ADICIONALES PARA ASEGURAR
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  
+  // Solo permite orígenes en la lista
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
+  
+  next();
+});
 
 app.use(express.json());
 
-// ✅ Health check endpoint
+// ✅ HEALTH CHECK PARA VERIFICAR
 app.get("/health", (req, res) => {
-  res.json({ 
-    status: "OK", 
-    timestamp: new Date().toISOString(),
-    allowedOrigins 
+  console.log("🔍 Health check llamado desde:", req.headers.origin);
+  res.json({
+    status: "OK",
+    serverTime: new Date().toISOString(),
+    yourOrigin: req.headers.origin || "No origin header",
+    allowedOrigins: allowedOrigins
   });
 });
 
-// ✅ Rutas principales
+// ✅ TUS RUTAS
 app.use("/", backupRouter);
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
