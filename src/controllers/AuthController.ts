@@ -360,65 +360,63 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
       message: "Error en el servidor durante el restablecimiento de contraseña",
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
-    // GET CURRENT USER INFO
-    const getCurrentUser = async (req: Request, res: Response): Promise<void> => {
-      try {
-        console.log("👤 Solicitud de información de usuario actual");
+  }
+};
 
-        // El middleware authMiddleware debe adjuntar el user al request
-        // Si no hay user en req, el token es inválido o no hay middleware
-        const userFromToken = (req as any).user;
+// GET CURRENT USER INFO
+export const getCurrentUser = async (req: Request, res: Response): Promise<void> => {
+  try {
+    console.log("👤 Solicitud de información de usuario actual");
 
-        if (!userFromToken || !userFromToken.id) {
-          console.log("❌ No hay usuario en el request - Token inválido o middleware faltante");
-          res.status(401).json({
-            success: false,
-            message: "Usuario no autenticado"
-          });
-          return;
-        }
+    // El middleware authMiddleware debe adjuntar el user al request
+    const userFromToken = (req as any).user;
 
-        console.log("🔍 Buscando usuario en BD con ID:", userFromToken.id);
+    if (!userFromToken || !userFromToken.id) {
+      console.log("❌ No hay usuario en el request - Token inválido o middleware faltante");
+      res.status(401).json({
+        success: false,
+        message: "Usuario no autenticado"
+      });
+      return;
+    }
 
-        // Buscar usuario en la base de datos para info completa
-        const dbUser = await UserModel.findByPk(userFromToken.id, {
-          attributes: ['id', 'username', 'email', 'firstname', 'lastname', 'role', 'img', 'createdAt']
-        });
+    console.log("🔍 Buscando usuario en BD con ID:", userFromToken.id);
 
-        if (!dbUser) {
-          console.log("❌ Usuario no encontrado en BD para ID:", userFromToken.id);
-          res.status(404).json({
-            success: false,
-            message: "Usuario no encontrado"
-          });
-          return;
-        }
+    // Buscar usuario en la base de datos - SIN createdAt (puede no existir)
+    const dbUser = await UserModel.findByPk(userFromToken.id, {
+      attributes: ['id', 'username', 'email', 'firstname', 'lastname', 'role', 'img']
+    });
 
-        console.log("✅ Usuario encontrado:", dbUser.username);
+    if (!dbUser) {
+      console.log("❌ Usuario no encontrado en BD para ID:", userFromToken.id);
+      res.status(404).json({
+        success: false,
+        message: "Usuario no encontrado"
+      });
+      return;
+    }
 
-        res.json({
-          success: true,
-          data: {
-            id: dbUser.id,
-            username: dbUser.username,
-            email: dbUser.email,
-            firstname: dbUser.firstname,
-            lastname: dbUser.lastname,
-            role: dbUser.role,
-            img: dbUser.img,
-            createdAt: dbUser.createdAt
-          }
-        });
+    console.log("✅ Usuario encontrado:", dbUser.username);
 
-      } catch (error: any) {
-        console.error("❌ Error en getCurrentUser:", error);
-        res.status(500).json({
-          success: false,
-          message: "Error al obtener información del usuario",
-          error: process.env.NODE_ENV === 'development' ? error.message : undefined,
-        });
+    res.json({
+      success: true,
+      data: {
+        id: dbUser.id,
+        username: dbUser.username,
+        email: dbUser.email,
+        firstname: dbUser.firstname,
+        lastname: dbUser.lastname,
+        role: dbUser.role,
+        img: dbUser.img
       }
-    };
+    });
 
+  } catch (error: any) {
+    console.error("❌ Error en getCurrentUser:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error al obtener información del usuario",
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
   }
 };
