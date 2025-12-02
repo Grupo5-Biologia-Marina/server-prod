@@ -14,10 +14,11 @@ const app = express();
 
 // ✅ LISTA DE DOMINIOS PERMITIDOS - AGREGA TU IP
 const allowedOrigins = [
+  "https://el-gran-azul.vercel.app",     
   "https://el-gran-azul-c2d7.vercel.app",
   "http://localhost:5173",
   "http://localhost:3000",
-  "http://192.168.1.68:5173" // ← ¡TU IP LOCAL AQUÍ!
+  "http://192.168.1.68:5173"
 ];
 
 console.log("✅ Dominios permitidos:", allowedOrigins);
