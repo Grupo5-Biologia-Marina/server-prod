@@ -4,8 +4,7 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { Op } from "sequelize";
 import UserModel from "../models/UserModel";
-import { sendWelcomeEmail } from "../utils/mailer";
-import { sendPasswordResetEmail, sendPasswordResetConfirmationEmail } from "../utils/emailService";
+import { sendWelcomeEmail, sendPasswordResetEmail, sendPasswordResetConfirmationEmail } from "../utils/emailService";
 
 const hashPassword = (password: string): string => {
   const salt = bcrypt.genSaltSync(10);
